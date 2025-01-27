@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   postgres:
     container_name: postgres
@@ -44,7 +42,7 @@ services:
 
   jbpm-compact-architecture-example-service:
     container_name: jbpm-compact-architecture-example-service
-    image: dev.local/jbpm-compact-architecture-example-service:${PROJECT_VERSION}
+    image: ${REGISTRY_PREFIX}/jbpm-compact-architecture-example-service:${PROJECT_VERSION}
     profiles: ["example", "full"]
     ports:
       - "8080:8080"

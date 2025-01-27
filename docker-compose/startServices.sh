@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PROFILE="full"
+DEFAULT_VERSION="1.0.0-SNAPSHOT"
 
 # Check for command line argument
 if [ -n "$1" ]; then
@@ -15,15 +16,36 @@ if [ -n "$1" ]; then
   fi
 fi
 
-# Check if image exists
-if docker image inspect dev.local/jbpm-compact-architecture-example-service:1.0.0-SNAPSHOT >/dev/null 2>&1; then
-    # Image exists, check when it was created
-    IMAGE_DATE=$(docker image inspect -f "{{.Created}}" dev.local/jbpm-compact-architecture-example-service:1.0.0-SNAPSHOT)
+# Function to get Maven variables
+get_maven_vars() {
+    cd ..
+    PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null || echo "${DEFAULT_VERSION}")
+    KOGITO_MANAGEMENT_CONSOLE_IMAGE=$(mvn help:evaluate -Dexpression=kogito.management-console.image -q -DforceStdout)
+    KOGITO_TASK_CONSOLE_IMAGE=$(mvn help:evaluate -Dexpression=kogito.task-console.image -q -DforceStdout)
+    cd - > /dev/null
+}
 
+# Get initial version for image check
+get_maven_vars
+
+# Set registry prefix based on OS
+if [ "$(uname)" = "Darwin" ]; then
+   REGISTRY_PREFIX="dev.local/${USER}"
+   BROWSER_HOST="kubernetes.docker.internal"
+elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
+   REGISTRY_PREFIX="dev.local/${USER}"
+   BROWSER_HOST="172.17.0.1"
+fi
+
+IMAGE_NAME="${REGISTRY_PREFIX}/jbpm-compact-architecture-example-service:${PROJECT_VERSION}"
+
+# Check if image exists locally first
+if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+    # Image exists, check when it was created
+    IMAGE_DATE=$(docker image inspect -f "{{.Created}}" "${IMAGE_NAME}")
     echo "Docker image exists, created on: $IMAGE_DATE"
     read -p "Do you want to rebuild? (y/N) " REBUILD_CHOICE
-
-    if [ "${REBUILD_CHOICE,,}" = "y" ]; then
+    if [ "${REBUILD_CHOICE}" = "y" ] || [ "${REBUILD_CHOICE}" = "Y" ]; then
         DO_BUILD=true
     else
         DO_BUILD=false
@@ -35,42 +57,35 @@ fi
 
 # Build if needed
 if [ "$DO_BUILD" = true ]; then
-    # Get Maven project version and image names
     cd ..
     echo "Building the project with container profile..."
     mvn clean install -DskipTests -Pcontainer
-
-    PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-    KOGITO_MANAGEMENT_CONSOLE_IMAGE=$(mvn help:evaluate -Dexpression=kogito.management-console.image -q -DforceStdout)
-    KOGITO_TASK_CONSOLE_IMAGE=$(mvn help:evaluate -Dexpression=kogito.task-console.image -q -DforceStdout)
-    cd -
-else
-    # If we didn't build, we still need to get the variables
-    cd ..
-    PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-    KOGITO_MANAGEMENT_CONSOLE_IMAGE=$(mvn help:evaluate -Dexpression=kogito.management-console.image -q -DforceStdout)
-    KOGITO_TASK_CONSOLE_IMAGE=$(mvn help:evaluate -Dexpression=kogito.task-console.image -q -DforceStdout)
-    cd -
+    if [ $? -ne 0 ]; then
+        echo "Maven build failed"
+        exit 1
+    fi
+    cd - > /dev/null
 fi
 
-# Set host name for Mac/Linux
-if [ "$(uname)" == "Darwin" ]; then
-   BROWSER_HOST="kubernetes.docker.internal"
-elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-   BROWSER_HOST="172.17.0.1"
-fi
+# Get Maven variables (whether we built or not)
+get_maven_vars
 
 # Create .env file
-echo "PROJECT_VERSION=${PROJECT_VERSION}" > ".env"
-echo "KOGITO_MANAGEMENT_CONSOLE_IMAGE=${KOGITO_MANAGEMENT_CONSOLE_IMAGE}" >> ".env"
-echo "KOGITO_TASK_CONSOLE_IMAGE=${KOGITO_TASK_CONSOLE_IMAGE}" >> ".env"
-echo "COMPOSE_PROFILES=${PROFILE}" >> ".env"
-echo "USER=${USER}" >> ".env"
-echo "BROWSER_HOST=${BROWSER_HOST}" >> ".env"
+cat << EOF > .env
+PROJECT_VERSION=${PROJECT_VERSION}
+KOGITO_MANAGEMENT_CONSOLE_IMAGE=${KOGITO_MANAGEMENT_CONSOLE_IMAGE}
+KOGITO_TASK_CONSOLE_IMAGE=${KOGITO_TASK_CONSOLE_IMAGE}
+COMPOSE_PROFILES=${PROFILE}
+USER=${USER}
+BROWSER_HOST=${BROWSER_HOST}
+REGISTRY_PREFIX=${REGISTRY_PREFIX}
+EOF
 
+# Verify SVG folder exists
 if [ ! -d "./svg" ]; then
     echo "SVG folder does not exist. Have you compiled the project? mvn clean install -DskipTests"
     exit 1
 fi
 
+# Start Docker Compose
 docker compose up
