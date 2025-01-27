@@ -27,7 +27,17 @@ get_maven_vars() {
 
 # Get initial version for image check
 get_maven_vars
-IMAGE_NAME="dev.local/${USER}/jbpm-compact-architecture-example-service:${PROJECT_VERSION}"
+
+# Set registry prefix based on OS
+if [ "$(uname)" = "Darwin" ]; then
+   REGISTRY_PREFIX="dev.local/${USER}"
+   BROWSER_HOST="kubernetes.docker.internal"
+elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
+   REGISTRY_PREFIX="dev.local/${USER}"
+   BROWSER_HOST="172.17.0.1"
+fi
+
+IMAGE_NAME="${REGISTRY_PREFIX}/jbpm-compact-architecture-example-service:${PROJECT_VERSION}"
 
 # Check if image exists locally first
 if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
@@ -60,13 +70,6 @@ fi
 # Get Maven variables (whether we built or not)
 get_maven_vars
 
-# Set host name for Mac/Linux
-if [ "$(uname)" = "Darwin" ]; then
-   BROWSER_HOST="kubernetes.docker.internal"
-elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
-   BROWSER_HOST="172.17.0.1"
-fi
-
 # Create .env file
 cat << EOF > .env
 PROJECT_VERSION=${PROJECT_VERSION}
@@ -75,6 +78,7 @@ KOGITO_TASK_CONSOLE_IMAGE=${KOGITO_TASK_CONSOLE_IMAGE}
 COMPOSE_PROFILES=${PROFILE}
 USER=${USER}
 BROWSER_HOST=${BROWSER_HOST}
+REGISTRY_PREFIX=${REGISTRY_PREFIX}
 EOF
 
 # Verify SVG folder exists
