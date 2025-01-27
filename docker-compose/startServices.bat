@@ -2,6 +2,7 @@
 setlocal EnableDelayedExpansion
 
 set "PROFILE=full"
+set "DEFAULT_VERSION=1.0.0-SNAPSHOT"
 
 :: Check for command line argument
 if not "%~1"=="" (
@@ -20,11 +21,17 @@ if not "%~1"=="" (
     )
 )
 
+:: Get initial version for image check
+pushd ..
+for /f "tokens=*" %%i in ('mvn help:evaluate -Dexpression^=project.version -q -DforceStdout') do set "PROJECT_VERSION=%%i"
+popd
+if not defined PROJECT_VERSION set "PROJECT_VERSION=%DEFAULT_VERSION%"
+
 :: Check if image exists
-docker image inspect dev.local/jbpm-compact-architecture-example-service:1.0.0-SNAPSHOT >nul 2>&1
+docker image inspect dev.local/jbpm-compact-architecture-example-service:%PROJECT_VERSION% >nul 2>&1
 if %errorlevel% equ 0 (
     :: Image exists, check when it was created
-    for /f "tokens=*" %%i in ('docker image inspect -f "{{.Created}}" dev.local/jbpm-compact-architecture-example-service:1.0.0-SNAPSHOT') do set IMAGE_DATE=%%i
+    for /f "tokens=*" %%i in ('docker image inspect -f "{{.Created}}" dev.local/jbpm-compact-architecture-example-service:%PROJECT_VERSION%') do set IMAGE_DATE=%%i
 
     echo Docker image exists, created on: !IMAGE_DATE!
     set /p REBUILD_CHOICE="Do you want to rebuild? (y/N) "
