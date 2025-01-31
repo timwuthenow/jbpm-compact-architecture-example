@@ -1,6 +1,9 @@
 {
     "name": "Apache KIE Development Environment",
-    "dockerFile": "Dockerfile",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": "."
+    },
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {
             "version": "latest",
@@ -28,5 +31,6 @@
     "runArgs": ["--init"],
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-    ]
+    ],
+    "forwardPorts": [8080, 8180, 8280, 8380, 8480]
 }
