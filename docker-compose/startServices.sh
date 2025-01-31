@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PROFILE="full"
 DEFAULT_VERSION="1.0.0-SNAPSHOT"
