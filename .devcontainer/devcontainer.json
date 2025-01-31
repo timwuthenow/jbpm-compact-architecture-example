@@ -22,7 +22,11 @@
                 "java.configuration.runtimes": [{
                     "name": "JavaSE-17",
                     "path": "/usr/local/sdkman/candidates/java/current"
-                }]
+                }],
+				"kogito.bpmn.svgFilenameTemplate": "${fileBasenameNoExtension}.svg",
+				"kogito.bpmn.svgFilePath": "${workspaceFolder}/src/main/resources/META-INF/processSVG/",
+				"kogito.dmn.svgFilenameTemplate": "${fileBasenameNoExtension}.svg",
+				"kogito.dmn.svgFilePath": "${workspaceFolder}/src/main/resources/META-INF/dmnSVG"
             }
         }
     },
