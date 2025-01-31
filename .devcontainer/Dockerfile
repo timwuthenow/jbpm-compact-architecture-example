@@ -3,6 +3,9 @@ FROM mcr.microsoft.com/devcontainers/java:17
 # Install SDKMAN for Java version management
 RUN bash -c ". /usr/local/sdkman/bin/sdkman-init.sh && sdk version"
 
+# Install Maven
+RUN apt-get update && apt-get install -y maven
+
 # Install Docker Compose
 RUN curl -L "https://github.com/docker/compose/releases/download/v2.24.1/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose \
 	&& chmod +x /usr/local/bin/docker-compose
@@ -17,3 +20,6 @@ RUN apt-get update && apt-get install -y \
 
 # Switch to vscode user (already exists in base image)
 USER vscode
+
+# Add Maven to PATH
+ENV PATH="/usr/share/maven/bin:${PATH}"
