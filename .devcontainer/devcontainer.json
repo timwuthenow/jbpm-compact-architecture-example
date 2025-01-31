@@ -1,0 +1,32 @@
+{
+    "name": "Apache KIE Development Environment",
+    "dockerFile": "Dockerfile",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "enableNonRootDocker": "true",
+            "moby": "true"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "kie-group.vscode-extension-kogito-bundle",
+                "vscjava.vscode-java-pack",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "java.configuration.runtimes": [{
+                    "name": "JavaSE-17",
+                    "path": "/usr/local/sdkman/candidates/java/current"
+                }]
+            }
+        }
+    },
+    "remoteUser": "vscode",
+    "postCreateCommand": "curl -o oc.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar -xvf oc.tar.gz && sudo mv oc /usr/local/bin/ && rm oc.tar.gz README.md",
+    "runArgs": ["--init"],
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ]
+}
