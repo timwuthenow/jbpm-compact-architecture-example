@@ -36,5 +36,5 @@
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
     ],
-    "forwardPorts": [8080, 8180, 8280, 8380, 8480]
+    "forwardPorts": [8080, 8180, 8280, 8380, 8480, 5432, 8055]
 }

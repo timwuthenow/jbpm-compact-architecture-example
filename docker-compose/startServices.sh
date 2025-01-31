@@ -4,6 +4,18 @@ set -e # Exit on error
 PROFILE="full"
 DEFAULT_VERSION="1.0.0-SNAPSHOT"
 
+# Extract codespace name from hostname if running in GitHub Codespace
+if [ -n "$CODESPACE_NAME" ]; then
+  echo "Running in GitHub Codespace: $CODESPACE_NAME"
+else
+  # Extract from the hostname for VS Code Remote development
+  CODESPACE_NAME=$(echo "$HOSTNAME" | cut -d'-' -f1,2)
+  if [ -z "$CODESPACE_NAME" ]; then
+    echo "Not running in a codespace, using localhost"
+    CODESPACE_NAME="localhost"
+  fi
+fi
+
 # Function to get Maven variables
 get_maven_vars() {
     cd ..
@@ -62,11 +74,6 @@ fi
 cd - > /dev/null
 
 # Create .env file
-echo "Creating .env file with the following variables:"
-echo "PROJECT_VERSION=${IMAGE_TAG}"
-echo "REGISTRY_PREFIX=${REGISTRY_PREFIX}"
-echo "BROWSER_HOST=${BROWSER_HOST}"
-
 cat << EOF > .env
 PROJECT_VERSION=${IMAGE_TAG}
 KOGITO_MANAGEMENT_CONSOLE_IMAGE=${KOGITO_MANAGEMENT_CONSOLE_IMAGE}
@@ -74,8 +81,9 @@ KOGITO_TASK_CONSOLE_IMAGE=${KOGITO_TASK_CONSOLE_IMAGE}
 COMPOSE_PROFILES=${PROFILE}
 BROWSER_HOST=${BROWSER_HOST}
 REGISTRY_PREFIX=${REGISTRY_PREFIX}
+CODESPACE_NAME=${CODESPACE_NAME}
 EOF
 
 # Start Docker Compose
 echo "Starting Docker Compose with profile: ${PROFILE}"
-docker compose up
+docker compose up --build
