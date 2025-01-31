@@ -4,16 +4,38 @@ set -e # Exit on error
 PROFILE="full"
 DEFAULT_VERSION="1.0.0-SNAPSHOT"
 
-# Extract codespace name from hostname if running in GitHub Codespace
-if [ -n "$CODESPACE_NAME" ]; then
-  echo "Running in GitHub Codespace: $CODESPACE_NAME"
+# Ask if running in devcontainers
+read -p "Are you running in devcontainers? (yes/no): " DEVCONTAINERS_RESPONSE
+
+if [[ "$DEVCONTAINERS_RESPONSE" =~ ^[Yy] ]]; then
+  echo "Running in a Dev Container setup."
+  USE_CODESPACE=true
 else
-  # Extract from the hostname for VS Code Remote development
-  CODESPACE_NAME=$(echo "$HOSTNAME" | cut -d'-' -f1,2)
-  if [ -z "$CODESPACE_NAME" ]; then
-    echo "Not running in a codespace, using localhost"
-    CODESPACE_NAME="localhost"
-  fi
+  echo "Running in a local Docker Compose setup."
+  USE_CODESPACE=false
+fi
+
+# Extract codespace name from hostname if running in GitHub Codespace
+if [ "$USE_CODESPACE" = true ]; then
+    if [ -n "$CODESPACE_NAME" ]; then
+        BASE_HOSTNAME="${CODESPACE_NAME}.app.github.dev"
+    else
+        BASE_HOSTNAME=$(echo "$HOSTNAME" | cut -d'-' -f1,2)".app.github.dev"
+    fi
+
+    # Define service-specific hostnames
+    JBPM_URL="https://${BASE_HOSTNAME}-8080"
+    MANAGEMENT_URL="https://${BASE_HOSTNAME}-8280"
+    TASK_URL="https://${BASE_HOSTNAME}-8380"
+    KEYCLOAK_URL="https://${BASE_HOSTNAME}-8480"
+	POSTGRES_URL="${BASE_HOSTNAME}-5432"
+else
+    # Local development URLs
+    JBPM_URL="http://jbpm-compact-architecture-example-service:8080"
+    MANAGEMENT_URL="http://management-console:8280"
+    TASK_URL="http://task-console:8380"
+    KEYCLOAK_URL="http://keycloak:8480"
+	POSTGRES_URL="postgres:5432"
 fi
 
 # Function to get Maven variables
@@ -40,6 +62,19 @@ fi
 
 # Get Maven variables first
 get_maven_vars
+
+# Set registry and browser host
+if [ "$USE_CODESPACE" = true ]; then
+    REGISTRY_HOST="https://${CODESPACE_NAME}-8080.app.github.dev"
+else
+    REGISTRY_HOST="http://localhost:8080"
+fi
+
+REGISTRY="dev.local"
+REGISTRY_PREFIX="${REGISTRY}/${USER}"
+IMAGE_TAG="latest"
+
+echo "Using registry prefix: ${REGISTRY_PREFIX}"
 
 # Set registry and browser host
 if [ "$(uname)" = "Darwin" ]; then
@@ -81,7 +116,13 @@ KOGITO_TASK_CONSOLE_IMAGE=${KOGITO_TASK_CONSOLE_IMAGE}
 COMPOSE_PROFILES=${PROFILE}
 BROWSER_HOST=${BROWSER_HOST}
 REGISTRY_PREFIX=${REGISTRY_PREFIX}
-CODESPACE_NAME=${CODESPACE_NAME}
+JBPM_URL=${JBPM_URL}
+MANAGMENT_URL=${MANAGEMENT_URL}
+TASK_URL=${TASK_URL}
+KEYCLOAK_URL=${KEYCLOAK_URL}
+POSTGRES_URL=${POSTGRES_URL}
+USE_CODESPACE=${USE_CODESPACE}
+
 EOF
 
 # Start Docker Compose
