@@ -1,5 +1,5 @@
 {
-    "name": "Apache KIE Development Environment",
+    "name": "Apache KIE Development Environment", 
     "build": {
         "dockerfile": "Dockerfile",
         "context": "."
@@ -28,7 +28,7 @@
         }
     },
     "remoteUser": "vscode",
-    "postCreateCommand": "curl -o oc.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar -xvf oc.tar.gz && sudo mv oc /usr/local/bin/ && rm oc.tar.gz README.md",
+    "postCreateCommand": "sudo chown vscode:root /var/run/docker.sock && curl -o oc.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar -xvf oc.tar.gz && sudo mv oc /usr/local/bin/ && rm oc.tar.gz README.md",
     "runArgs": [
         "--init",
         "--privileged"
@@ -36,6 +36,5 @@
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
     ],
-    "forwardPorts": [8080, 8180, 8280, 8380, 8480],
-    "initializeCommand": "sudo chown vscode:docker /var/run/docker.sock"
+    "forwardPorts": [8080, 8180, 8280, 8380, 8480]
 }

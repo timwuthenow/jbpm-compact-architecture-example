@@ -28,9 +28,8 @@
 	<version>1.0.0-SNAPSHOT</version>
 
 	<properties>
-		<kogito.management-console.image>
-			docker.io/apache/incubator-kie-kogito-management-console:10.0.0</kogito.management-console.image>
-		<kogito.task-console.image>docker.io/apache/incubator-kie-kogito-task-console:10.0.0</kogito.task-console.image>
+<kogito.management-console.image>docker.io/apache/incubator-kie-kogito-management-console:10.0.0</kogito.management-console.image>
+        <kogito.task-console.image>docker.io/apache/incubator-kie-kogito-task-console:10.0.0</kogito.task-console.image>
 		<maven.compiler.release>17</maven.compiler.release>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
@@ -173,18 +172,23 @@
 	</dependencies>
 
 	<profiles>
-		<profile>
-			<id>container</id>
-			<properties>
-				<quarkus.profile>container</quarkus.profile>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>io.quarkus</groupId>
-					<artifactId>quarkus-container-image-jib</artifactId>
-				</dependency>
-			</dependencies>
-		</profile>
+<profile>
+      <id>container</id>
+      <properties>
+        <quarkus.profile>container</quarkus.profile>
+        <quarkus.container-image.registry>dev.local</quarkus.container-image.registry>
+        <quarkus.container-image.group>vscode</quarkus.container-image.group>
+        <quarkus.container-image.name>jbpm-compact-architecture-example-service</quarkus.container-image.name>
+        <quarkus.container-image.tag>${project.version}</quarkus.container-image.tag>
+        <quarkus.container-image.build>true</quarkus.container-image.build>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-container-image-jib</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
 		<profile>
 			<id>development</id>
 			<properties>

@@ -6,7 +6,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./sql:/docker-entrypoint-initdb.d:Z
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD", "pg_isready", "-q", "-d", "kogito", "-U", "kogito-user"]
       timeout: 45s
@@ -15,6 +15,9 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      LANG: en_US.utf8
+      PGDATA: /var/lib/postgresql/data/PGDATA
+    user: postgres
 
   pgadmin:
     container_name: pgadmin
