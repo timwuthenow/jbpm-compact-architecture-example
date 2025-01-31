@@ -8,7 +8,8 @@
         "ghcr.io/devcontainers/features/docker-in-docker:2": {
             "version": "latest",
             "enableNonRootDocker": "true",
-            "moby": "true"
+            "moby": "true",
+            "dockerDashComposeVersion": "v2"
         }
     },
     "customizations": {
@@ -22,19 +23,19 @@
                 "java.configuration.runtimes": [{
                     "name": "JavaSE-17",
                     "path": "/usr/local/sdkman/candidates/java/current"
-                }],
-				"kogito.bpmn.svgFilenameTemplate": "${fileBasenameNoExtension}.svg",
-				"kogito.bpmn.svgFilePath": "${workspaceFolder}/src/main/resources/META-INF/processSVG/",
-				"kogito.dmn.svgFilenameTemplate": "${fileBasenameNoExtension}.svg",
-				"kogito.dmn.svgFilePath": "${workspaceFolder}/src/main/resources/META-INF/dmnSVG"
+                }]
             }
         }
     },
     "remoteUser": "vscode",
     "postCreateCommand": "curl -o oc.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar -xvf oc.tar.gz && sudo mv oc /usr/local/bin/ && rm oc.tar.gz README.md",
-    "runArgs": ["--init"],
+    "runArgs": [
+        "--init",
+        "--privileged"
+    ],
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
     ],
-    "forwardPorts": [8080, 8180, 8280, 8380, 8480]
+    "forwardPorts": [8080, 8180, 8280, 8380, 8480],
+    "initializeCommand": "sudo chown vscode:docker /var/run/docker.sock"
 }
