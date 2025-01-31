@@ -31,10 +31,10 @@ if [ "$USE_CODESPACE" = true ]; then
 	POSTGRES_URL="${BASE_HOSTNAME}-5432"
 else
     # Local development URLs
-    JBPM_URL="http://jbpm-compact-architecture-example-service:8080"
-    MANAGEMENT_URL="http://management-console:8280"
-    TASK_URL="http://task-console:8380"
-    KEYCLOAK_URL="http://keycloak:8480"
+    JBPM_URL="http://localhost:8080"
+    MANAGEMENT_URL="http://localhost:8280"
+    TASK_URL="http://localhost:8380"
+    KEYCLOAK_URL="http://localhost:8480"
 	POSTGRES_URL="postgres:5432"
 fi
 
@@ -117,7 +117,7 @@ COMPOSE_PROFILES=${PROFILE}
 BROWSER_HOST=${BROWSER_HOST}
 REGISTRY_PREFIX=${REGISTRY_PREFIX}
 JBPM_URL=${JBPM_URL}
-MANAGMENT_URL=${MANAGEMENT_URL}
+MANAGEMENT_URL=${MANAGEMENT_URL}
 TASK_URL=${TASK_URL}
 KEYCLOAK_URL=${KEYCLOAK_URL}
 POSTGRES_URL=${POSTGRES_URL}
